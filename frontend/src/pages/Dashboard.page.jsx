@@ -91,7 +91,7 @@ const DashboardPage = () => {
                 </motion.div>
               </div>
             </div>
-            <motion.button
+            {/* <motion.button
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.5 }}
@@ -99,7 +99,7 @@ const DashboardPage = () => {
               className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition-all"
             >
               Logout
-            </motion.button>
+            </motion.button> */}
           </div>
         </div>
 

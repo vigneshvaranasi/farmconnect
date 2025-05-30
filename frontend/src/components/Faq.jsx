@@ -35,7 +35,7 @@ function Faq () {
   }
 
   return (
-    <div className='league-spartan px-7 mb-3'>
+    <div className='league-spartan px-7 py-20'>
       <h1 className='text-4xl'>FAQ</h1>
       {faqData.map((item, idx) => {
         const isOpen = openIdx === idx
@@ -45,7 +45,7 @@ function Faq () {
               className='flex justify-between items-center cursor-pointer select-none'
               onClick={() => toggleFaq(idx)}
             >
-              <h2 className='text-[25px] font-semibold'>{item.question}</h2>
+              <h2 className='text-[25px] font-medium'>{item.question}</h2>
               <motion.img
                 src={downArrow}
                 className='w-4'

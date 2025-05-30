@@ -8,6 +8,7 @@ import FarmerStatusPage from '../pages/FarmerStatus.page'
 import DashboardPage from '../pages/Dashboard.page'
 import MyCropsPage from '../pages/MyCrops.page'
 import MyOrdersPage from '../pages/MyOrders.page'
+import RoleBasedProducts from '../pages/product/RoleBasedProducts'
 
 const normalRoutes = {
   path: '/',
@@ -37,7 +38,7 @@ const normalRoutes = {
       path: '/farmer/status',
       element: <FarmerStatusPage />
     },    {
-      path: '/dashboard',
+      path: '/profile',
       element: <DashboardPage />
     },
     {
@@ -47,7 +48,15 @@ const normalRoutes = {
     {
       path: '/my-orders',
       element: <MyOrdersPage />
-    }
+    },
+    {
+      path: '/products',
+      element: <RoleBasedProducts />
+    },
+    // {
+    //   path: '/bidding',
+    //   element: 
+    // }
   ]
 }
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://zn12df18-5000.inc1.devtunnels.ms/api';
 
 // Create axios instance with default config
 const api = axios.create({

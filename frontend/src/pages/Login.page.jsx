@@ -1,82 +1,83 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import React, { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
+import InputBox from '../components/InputBox'
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
     phoneNumber: '',
-    password: '',
-    userType: 'customer'
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const { login, error, clearError } = useAuth();
-  const navigate = useNavigate();
+    password: ''
+  })
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const { login, error, clearError } = useAuth()
+  const navigate = useNavigate()
+
+  const handleChange = e => {
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }));
-    if (error) clearError();
-  };
+    }))
+    if (error) clearError()
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleSubmit = async e => {
+    e.preventDefault()
+    setIsLoading(true)
 
     try {
-      const response = await login(formData);
-      toast.success(`Welcome back, ${response.data.user.name}!`);
-      navigate('/dashboard');
+      const response = await login({ ...formData, userType: 'customer' })
+      toast.success(`Welcome back, ${response.data.user.name}!`)
+      navigate('/profile')
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.message || 'Login failed')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
+    <div className='min-h-screen flex items-center justify-center px-4 py-8 bg-[#ececec] mt-[0px] pt-[0px]'>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8"
+        className='max-w-md w-full rounded-lg p-6 md:p-8'
       >
-        <div className="text-center mb-8">
+        <div className='text-center mb-6 md:mb-8'>
           <motion.h1
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-3xl font-bold text-gray-900 mb-2"
+            className='font-league-spartan font-semibold text-4xl md:text-5xl text-gray-900 overflow-hidden pt-[0px]'
           >
-            Welcome Back
+            <div className='inline-block whitespace-nowrap'>Welcome Back</div>
           </motion.h1>
-          <p className="text-gray-600">Sign in to your FarmConnect account</p>
-        </div>        <form onSubmit={handleSubmit} className="space-y-6">
+          <p className='font-league-spartan text-black-900 text-lg mt-3'>
+            Sign in to your FarmConnect account
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className='space-y-5'>
+          {/* Input fields remain the same */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              User Type
-            </label>
-            <select
-              name="userType"
-              value={formData.userType}
+            <InputBox
+              label='Phone Number'
+              type='tel'
+              name='phoneNumber'
+              value={formData.phoneNumber}
               onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-              required
-            >
-              <option value="customer">Customer</option>
-              <option value="trader">Trader</option>
-              <option value="farmer">Farmer</option>
-            </select>
+              placeholder='Enter your phone number'
+              pattern='[6-9][0-9]{9}'
+              title='Please enter a valid Indian phone number'
+            />
           </motion.div>
 
           <motion.div
@@ -84,38 +85,13 @@ const LoginPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={formData.phoneNumber}
-              onChange={handleChange}
-              placeholder="Enter your phone number"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-              required
-              pattern="[6-9][0-9]{9}"
-              title="Please enter a valid Indian phone number"
-            />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              name="password"
+            <InputBox
+              label='Password'
+              type='password'
+              name='password'
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-              required
+              placeholder='Enter your password'
             />
           </motion.div>
 
@@ -123,66 +99,68 @@ const LoginPage = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg"
+              className='text-red-600 text-sm text-center bg-red-50 p-3 rounded'
             >
               {error}
             </motion.div>
-          )}          <motion.button
+          )}
+
+          <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            type="submit"
+            transition={{ delay: 0.5 }}
+            type='submit'
             disabled={isLoading}
-            className="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`w-full text-white py-3 px-4 font-medium rounded transition-all ${
+              isLoading
+                ? 'bg-[#0f2d1f] cursor-not-allowed'
+                : 'bg-[#133524] hover:bg-[#0f2d1f]'
+            }`}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? (
+              <span className='flex items-center justify-center'>
+                <svg
+                  className='animate-spin -ml-1 mr-3 h-5 w-5 text-white'
+                  xmlns='http://www.w3.org/2000/svg'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                >
+                  <circle
+                    className='opacity-25'
+                    cx='12'
+                    cy='12'
+                    r='10'
+                    stroke='currentColor'
+                    strokeWidth='4'
+                  ></circle>
+                  <path
+                    className='opacity-75'
+                    fill='currentColor'
+                    d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z'
+                  ></path>
+                </svg>
+                Signing in...
+              </span>
+            ) : (
+              'Sign In'
+            )}
           </motion.button>
         </form>
 
-        {/* Demo Farmer Credentials */}
-        {formData.userType === 'farmer' && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg"
-          >            <h3 className="text-sm font-semibold text-green-800 mb-2">Demo Farmer Credentials:</h3>
-            <div className="text-xs text-green-700 space-y-1">
-              <p><strong>Farmer 1:</strong> Phone: 9876543210, Password: farmer123</p>
-              <p><strong>Farmer 2:</strong> Phone: 8765432109, Password: farmer123</p>
-            </div>
-          </motion.div>
-        )}        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="mt-8 text-center space-y-4"
-        >
-          <p className="text-gray-600">Don't have an account?</p>
-          <div className="space-y-2">
-            <Link
-              to="/register/customer"
-              className="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition-all"
-            >
-              Register as Customer
-            </Link>
-            <Link
-              to="/register/trader"
-              className="block w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 transition-all"
-            >
-              Register as Trader
-            </Link>
-            <Link
-              to="/farmer/request"
-              className="block w-full bg-orange-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-700 transition-all"
-            >
-              Request Farmer Access
-            </Link>
-          </div>
-        </motion.div>
+        <div className='text-center mt-6 md:mt-8'>
+          <p className='text-gray-600 text-sm md:text-base mb-4'>
+            Don't have an account?
+          </p>
+          <Link
+            to='/register/customer'
+            className='w-full block text-[#133524] border border-black py-3 px-4 font-medium rounded   text-center'
+          >
+            Register as Customer
+          </Link>
+        </div>
       </motion.div>
     </div>
-  );
-};
+  )
+}
 
-export default LoginPage;
+export default LoginPage

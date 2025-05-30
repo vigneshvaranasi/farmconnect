@@ -27,7 +27,7 @@ function Footer () {
           alt=''
         />
       </div>
-      <div cla ssName='flex justify-center items-center p-6 bg-[#ececec]'>
+      <div className='flex justify-center items-center p-6 bg-[#ececec]'>
         <img src={farmconnectLogo} className='mx-auto py-4 ps-14' alt='' />
       </div>
     </div>

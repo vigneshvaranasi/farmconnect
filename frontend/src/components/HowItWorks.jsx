@@ -2,7 +2,7 @@ import React from 'react';
 
 function HowItWorks() {
   return (
-    <div className='league-spartan my-4 px-4 lg:px-8'>
+    <div className='league-spartan my-4 px-4 lg:px-8 py-20'>
       <h1 className='text-4xl font-medium mb-6'>How it Works</h1>
       <div className="w-full overflow-x-auto flex justify-between items-center">
         <table className='w-full max-w-8xl text-xl'>

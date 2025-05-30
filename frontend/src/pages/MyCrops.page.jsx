@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import api from '../services/api';
+import InputBox from '../components/InputBox';
 
 const MyCropsPage = () => {
   const [crops, setCrops] = useState([]);
@@ -11,12 +12,16 @@ const MyCropsPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newCrop, setNewCrop] = useState({
     name: '',
-    category: 'Vegetables',
+    stock: '',
+    location: '',
+    stockLocation: '',
+    tags: [],
+    agmarkGrade: '',
+    agmarkCertificate: null,
+    startPrice: '',
+    startDate: '',
+    endDate: '',
     description: '',
-    price: '',
-    quantityAvailable: '',
-    unit: 'kg',
-    organic: false
   });
   
   const { user } = useAuth();
@@ -25,7 +30,7 @@ const MyCropsPage = () => {
   useEffect(() => {
     // Redirect if not a farmer
     if (user && user.userType !== 'farmer') {
-      navigate('/dashboard');
+      navigate('/profile');
       toast.error('Only farmers can access this page');
     }
     
@@ -47,10 +52,24 @@ const MyCropsPage = () => {
   
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setNewCrop({
-      ...newCrop,
-      [name]: type === 'checkbox' ? checked : value
-    });
+    
+    if (type === 'checkbox') {
+      // Handle tags checkbox
+      if (name === 'tags') {
+        setNewCrop(prev => {
+          const updatedTags = checked 
+            ? [...prev.tags, value]
+            : prev.tags.filter(tag => tag !== value);
+          return { ...prev, tags: updatedTags };
+        });
+      } else {
+        setNewCrop(prev => ({ ...prev, [name]: checked }));
+      }
+    } else if (type === 'file') {
+      setNewCrop(prev => ({ ...prev, [name]: e.target.files[0] }));
+    } else {
+      setNewCrop(prev => ({ ...prev, [name]: value }));
+    }
   };
   
   const handleAddCrop = async (e) => {
@@ -58,20 +77,38 @@ const MyCropsPage = () => {
     
     try {
       setIsLoading(true);
-      await api.post('/crops', newCrop);
+      
+      const formData = new FormData();
+      for (const key in newCrop) {
+        if (key === 'tags') {
+          formData.append(key, JSON.stringify(newCrop[key]));
+        } else if (newCrop[key] !== null) {
+          formData.append(key, newCrop[key]);
+        }
+      }
+      
+      await api.post('/crops', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
       toast.success('Crop added successfully!');
       setShowAddForm(false);
       setNewCrop({
         name: '',
-        category: 'Vegetables',
+        stock: '',
+        location: '',
+        stockLocation: '',
+        tags: [],
+        agmarkGrade: '',
+        agmarkCertificate: null,
+        startPrice: '',
+        startDate: '',
+        endDate: '',
         description: '',
-        price: '',
-        quantityAvailable: '',
-        unit: 'kg',
-        organic: false
       });
       
-      // Refresh crops list
       fetchCrops();
     } catch (error) {
       console.error('Error adding crop:', error);
@@ -125,120 +162,180 @@ const MyCropsPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="bg-white p-6 rounded-xl shadow-md mb-8"
           >
-            <h2 className="text-xl font-semibold mb-4 text-green-800">Add New Crop</h2>
+            <h2 className="text-xl font-semibold mb-6 text-green-800">Add New Crop</h2>
             
-            <form onSubmit={handleAddCrop} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Crop Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newCrop.name}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select
-                  name="category"
-                  value={newCrop.category}
-                  onChange={handleInputChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                >
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Fruits">Fruits</option>
-                  <option value="Grains">Grains</option>
-                  <option value="Pulses">Pulses</option>
-                  <option value="Dairy">Dairy</option>
-                  <option value="Herbs">Herbs</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                <textarea
-                  name="description"
-                  value={newCrop.description}
-                  onChange={handleInputChange}
-                  rows="3"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                ></textarea>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price (₹)</label>
-                <input
-                  type="number"
-                  name="price"
-                  value={newCrop.price}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
-                  <input
-                    type="number"
-                    name="quantityAvailable"
-                    value={newCrop.quantityAvailable}
+            <form onSubmit={handleAddCrop} className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {/* First Column - Product Details */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold border-b pb-2">Product Details</h3>
+                  
+                  <InputBox
+                    label="Product Name"
+                    name="name"
+                    value={newCrop.name}
                     onChange={handleInputChange}
-                    min="0"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    required
+                    placeholder="Enter product name"
+                  />
+                  
+                  <InputBox
+                    label="Stock (Quantity)"
+                    name="stock"
+                    type="number"
+                    value={newCrop.stock}
+                    onChange={handleInputChange}
+                    placeholder="Enter stock quantity"
+                  />
+                  
+                  <InputBox
+                    label="Location"
+                    name="location"
+                    value={newCrop.location}
+                    onChange={handleInputChange}
+                    placeholder="Enter location"
+                  />
+                  
+                  <InputBox
+                    label="Stock Location"
+                    name="stockLocation"
+                    value={newCrop.stockLocation}
+                    onChange={handleInputChange}
+                    placeholder="Enter stock location"
+                  />
+                  
+                  <div className="space-y-2">
+                    <label className="block text-lg font-semibold text-gray-900 mb-2">
+                      Select Tags
+                    </label>
+                    <div className="space-y-2">
+                      {['organic', 'freshly Harvested', '1 week old', '2 week old'].map(tag => (
+                        <div key={tag} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            id={tag}
+                            name="tags"
+                            value={tag}
+                            checked={newCrop.tags.includes(tag)}
+                            onChange={handleInputChange}
+                            className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+                          />
+                          <label htmlFor={tag} className="ml-2 text-gray-700 capitalize">
+                            {tag}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Second Column - Quality Details */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold border-b pb-2">Quality Details</h3>
+                  
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-900 mb-2">
+                      Agmark Grade
+                    </label>
+                    <div className="flex space-x-4">
+                      {['A', 'B', 'C'].map(grade => (
+                        <div key={grade} className="flex items-center">
+                          <input
+                            type="radio"
+                            id={`grade-${grade}`}
+                            name="agmarkGrade"
+                            value={grade}
+                            checked={newCrop.agmarkGrade === grade}
+                            onChange={handleInputChange}
+                            className="h-4 w-4 border-gray-300"
+                            style={{
+                              color: grade === 'A' ? '#10B981' : 
+                                     grade === 'B' ? '#F59E0B' : '#EF4444'
+                            }}
+                          />
+                          <label 
+                            htmlFor={`grade-${grade}`} 
+                            className="ml-2 text-gray-700"
+                            style={{
+                              color: grade === 'A' ? '#10B981' : 
+                                     grade === 'B' ? '#F59E0B' : '#EF4444'
+                            }}
+                          >
+                            Grade {grade}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-lg font-semibold text-gray-900 mb-2">
+                      Agmark Certificate
+                    </label>
+                    <input
+                      type="file"
+                      name="agmarkCertificate"
+                      onChange={handleInputChange}
+                      accept="image/*,.pdf"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                  </div>
+                  
+                  <InputBox
+                    label="Description"
+                    name="description"
+                    value={newCrop.description}
+                    onChange={handleInputChange}
+                    placeholder="Enter product description"
+                    type="textarea"
+                    className="md:col-span-2"
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-                  <select
-                    name="unit"
-                    value={newCrop.unit}
+                {/* Third Column - Bid Details */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-bold border-b pb-2">Bid Details</h3>
+                  
+                  <InputBox
+                    label="Start Price (₹)"
+                    name="startPrice"
+                    type="number"
+                    value={newCrop.startPrice}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="ton">ton</option>
-                    <option value="piece">piece</option>
-                    <option value="dozen">dozen</option>
-                    <option value="liter">liter</option>
-                    <option value="ml">ml</option>
-                  </select>
+                    placeholder="Enter start price"
+                  />
+                  
+                  <InputBox
+                    label="Start Date"
+                    name="startDate"
+                    type="date"
+                    value={newCrop.startDate}
+                    onChange={handleInputChange}
+                  />
+                  
+                  <InputBox
+                    label="End Date"
+                    name="endDate"
+                    type="date"
+                    value={newCrop.endDate}
+                    onChange={handleInputChange}
+                  />
+                  
+                  <InputBox
+                    label="Stock Location"
+                    name="stockLocation"
+                    value={newCrop.stockLocation}
+                    onChange={handleInputChange}
+                    placeholder="Enter stock location for bidding"
+                  />
                 </div>
               </div>
               
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="organic"
-                  name="organic"
-                  checked={newCrop.organic}
-                  onChange={handleInputChange}
-                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <label htmlFor="organic" className="ml-2 block text-sm text-gray-700">
-                  Organic Product
-                </label>
-              </div>
-              
-              <div className="md:col-span-2 flex justify-end">
+              <div className="flex justify-end">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   type="submit"
-                  className="bg-green-600 text-white px-8 py-2 rounded-lg shadow-md hover:bg-green-700 transition-all disabled:opacity-50"
+                  className="bg-green-600 text-white px-8 py-3 rounded-lg shadow-md hover:bg-green-700 transition-all disabled:opacity-50"
                   disabled={isLoading}
                 >
                   {isLoading ? 'Adding...' : 'Add Crop'}
@@ -287,21 +384,21 @@ const MyCropsPage = () => {
                 <div className="p-6">
                   <div className="flex justify-between items-start">
                     <h3 className="text-xl font-semibold text-gray-900">{crop.name}</h3>
-                    {crop.organic && (
+                    {crop.tags?.includes('organic') && (
                       <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                         Organic
                       </span>
                     )}
                   </div>
                   
-                  <p className="text-sm text-gray-500 mt-1">{crop.category}</p>
+                  <p className="text-sm text-gray-500 mt-1">Stock: {crop.stock}</p>
                   
                   <p className="mt-2 text-gray-700 line-clamp-2">{crop.description}</p>
                   
                   <div className="mt-4 flex justify-between items-center">
-                    <span className="text-xl font-bold text-green-700">₹{crop.price}/{crop.unit}</span>
+                    <span className="text-xl font-bold text-green-700">₹{crop.startPrice}</span>
                     <span className="text-sm text-gray-600">
-                      {crop.quantityAvailable} {crop.unit} available
+                      {crop.stockLocation}
                     </span>
                   </div>
                   
